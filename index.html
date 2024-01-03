@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootstrap 5 with jQuery, DataTables, Formatting, Filtering, and API Example</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <!-- DataTables CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">  
+  <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <style type="text/css">
+    table {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* Hide child rows by default */
+    tr.shown + tr.child-row > td {
+      display: none;
+    }
+
+    /* Media query for smaller screen resolution */
+    @media (max-width: 767px) {
+      /* Ensure child rows are displayed when expanded */
+      tr.shown + tr.child-row > td {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1 class="mb-3">Get Data from API with Formatting and Filtering</h1>
+    <h3 class="mb-3">Source: <a href="https://bsby.siglab.co.id/api/test-programmer?email=oadhim@gmail.com">bsby.siglab.co.id/api/test-programmer?email=oadhim@gmail.com</a></h3>
+    <div class="row">
+      <div class="col-sm-12 col-md-6 col-lg-4">
+        <div class="mb-3">
+          <label for="typeSelect" class="form-label">Pilih Type:</label>
+          <select class="form-select" id="typeSelect" aria-label="Pilih Type">
+            <option selected value="">Select All</option>
+            <!-- Add more options as needed -->
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-6 col-lg-4">
+        <div class="mb-3">
+          <label for="statusSelect" class="form-label">Pilih Status:</label>
+          <select class="form-select" id="statusSelect" aria-label="Pilih Status">
+            <option selected value="">Select All</option>
+            <!-- Add more options as needed -->
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-6 col-lg-4">
+        <div class="mb-3">
+          <label for="attachmentSelect" class="form-label">Pilih Status Attachment:</label>
+          <select class="form-select" id="attachmentSelect" aria-label="Pilih Status Attachment">
+            <option selected value="">Select All</option>
+            <!-- Add more options as needed -->
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-12 col-md-6 col-lg-4">
+        <div class="mb-3">
+          <label for="discountSelect" class="form-label">Pilih Status Discount:</label>
+          <select class="form-select" id="discountSelect" aria-label="Pilih Status Discount">
+            <option selected value="">Select All</option>
+            <!-- Add more options as needed -->
+          </select>
+        </div>
+      </div>
+    </div>
+    <!-- <label for="filterInput" class="form-label">Search:</label>
+    <input type="text" id="filterInput" class="form-control mb-3" placeholder="Type to filter"> -->
+    <div class="table-responsive">
+      <table id="dataTable" class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Price</th>
+            <th>Discount</th>
+            <th>Attachment</th>
+            <!-- Add more table headers as needed -->
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be displayed here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+  <script>
+    let typenumber = [1, 2, 3, 4, 13, 14, 15, 16, 17, 18, 19, 20];
+    let typecode = ["F", "P", "G", "T", "B", "M", "K", "A", "E", "L", "R", "D"];
+    let typename = ["Food & Beverage", "Pharmaceuticals", "Government", "Traditional Medicine & Suplement", "Beauty, Cosmetics & Personal Care", "Media RTU", "K3L Products", "ALKES & PKRT", "Feed, Pesticides & PSAT", "Others", "Research / Academic Purpose", "Dioxine Udara"];
+    let statusapproval = ["Unapproved","Approved"];
+    let statusdefault = ["Tidak","Ada"];
+
+    $(document).ready(function(){
+      $('#dataTable').DataTable();
+      drawOptionType();
+      drawOptionApprovalStatus();
+      drawOptionAttachmentStatus();
+      drawOptionDiscounttatus();
+      drawDataTable();
+
+      $('#typeSelect').change(function() {
+        let selectedValue = $(this).val();
+        // console.log("Selected value:", selectedValue);
+        drawDataTable();
+        // Perform actions based on the selected value
+        // For example, you can update content, call functions, etc.
+      });
+      $('#statusSelect').change(function() {
+        let selectedValue = $(this).val();
+        // console.log("Selected value:", selectedValue);
+        drawDataTable();
+        // Perform actions based on the selected value
+        // For example, you can update content, call functions, etc.
+      });
+      $('#attachmentSelect').change(function() {
+        let selectedValue = $(this).val();
+        // console.log("Selected value:", selectedValue);
+        drawDataTable();
+        // Perform actions based on the selected value
+        // For example, you can update content, call functions, etc.
+      });
+      $('#discountSelect').change(function() {
+        let selectedValue = $(this).val();
+        // console.log("Selected value:", selectedValue);
+        drawDataTable();
+        // Perform actions based on the selected value
+        // For example, you can update content, call functions, etc.
+      });
+    });
+
+    function drawOptionType() {
+      let indexNum = 0;
+      const selectElement = document.getElementById("typeSelect");
+      typename.forEach(function(optionText) {
+        const option = document.createElement("option");
+        option.value = typenumber[indexNum];
+        option.text = optionText;
+        selectElement.appendChild(option);
+        indexNum++;
+      });
+    }
+
+    function drawOptionApprovalStatus() {
+      let indexNum = 0;
+      const selectElement = document.getElementById("statusSelect");
+      statusapproval.forEach(function(optionText) {
+        const option = document.createElement("option");
+        option.value = indexNum;
+        option.text = optionText;
+        selectElement.appendChild(option);
+        indexNum++;
+      });
+    }
+
+    function drawOptionAttachmentStatus() {
+      let indexNum = 0;
+      const selectElement = document.getElementById("attachmentSelect");
+      statusdefault.forEach(function(optionText) {
+        const option = document.createElement("option");
+        option.value = indexNum;
+        option.text = optionText;
+        selectElement.appendChild(option);
+        indexNum++;
+      });
+    }
+
+    function drawOptionDiscounttatus() {
+      let indexNum = 0;
+      const selectElement = document.getElementById("discountSelect");
+      statusdefault.forEach(function(optionText) {
+        const option = document.createElement("option");
+        option.value = indexNum;
+        option.text = optionText;
+        selectElement.appendChild(option);
+        indexNum++;
+      });
+    }
+
+    function drawDataTable() {
+      $('#dataTable').DataTable().destroy();
+      $('#dataTable').DataTable({
+        "processing": true,
+        "responsive": true, // Enable responsiveness
+        // "serverSide": true,
+        "ajax": {
+          "url": "https://bsby.siglab.co.id/api/test-programmer?email=oadhim@gmail.com", // Replace with your API endpoint
+          "type": "GET",
+          "dataType": "json",
+          "dataSrc": function (json) {
+            // Parse and extract required data from the API response
+            // Modify this section according to your API response structure
+            var data = json.results; // Assuming 'data' is an array in the API response
+            var parsedData = [];
+            let selectedType = $('#typeSelect option:selected').val();
+            let selectedStatus = $('#statusSelect option:selected').val();
+            let selectedAttachment = $('#attachmentSelect option:selected').val();
+            let selectedDiscount = $('#discountSelect option:selected').text();
+            $.each(data, function(index, item) {
+              // console.log(item);
+              parsedData.push({
+                "id": item.id, // Assuming 'id' is a field in the API response
+                "type_name": typename[typenumber.indexOf(item.type)], // Assuming 'type' is a field in the API response
+                "type_number": item.type, // Assuming 'type' is a field in the API response
+                "name": item.name, // Assuming 'name' is a field in the API response
+                "status": item.status, // Assuming 'status' is a field in the API response
+                "status_name": statusapproval[item.status], // Assuming 'status' is a field in the API response
+                "status_display": '<span class="badge '+ (item.status > 0 ? "bg-success" : "btn-danger") +'">'+statusapproval[item.status]+'</span>', // Assuming 'status' is a field in the API response
+                "price": item.price, // Assuming 'price' is a field in the API response
+                "price_display": formatMoney(item.price), // Assuming 'price' is a field in the API response
+                "discount_display": formatMoney(item.discount) + (item.discount > 1000000 ? '<br><span class="badge bg-success">Discount</span> <span class="badge bg-warning">Approval Needed</span>' : (item.discount > 0 ? '  <span class="badge bg-success">Discount</span>' : '')), // Assuming 'discount' is a field in the API response
+                "discount_status": item.discount > 0 ? 'Ada' : 'Tidak Ada', // Assuming 'discount' is a field in the API response
+                "discount_value": formatMoney(item.discount), // Assuming 'discount' is a field in the API response
+                "attachment_display": '<button type="button" class="btn-sm '+ (item.attachment > 0 ? "btn-primary" : "btn-light") +'">'+statusdefault[item.attachment]+'</button>', // Assuming 'attachment' is a field in the API response
+                "attachment_status": item.attachment > 0 ? 'Ada' : 'Tidak Ada', // Assuming 'attachment' is a field in the API response
+                "attachment_count": item.attachment // Assuming 'attachment' is a field in the API response
+                // Add more fields as needed
+              });
+            });
+            if (selectedType == "" && selectedStatus == "" && selectedAttachment == "" && selectedDiscount == "") {
+              // console.log(parsedData);
+              return parsedData;
+            } else {
+              // Example usage:
+              let filters = [];
+              if (selectedType !== "") {
+                filters["type_number"] = parseInt(selectedType);
+              }
+              if (selectedStatus !== "") {
+                filters["status"] = parseInt(selectedStatus);
+              }
+              if (selectedAttachment !== "") {
+                filters["attachment_count"] = parseInt(selectedAttachment);
+              }
+              if (selectedDiscount !== "" && selectedDiscount !== "Select All") {
+                filters["discount_status"] = selectedDiscount;
+              }
+              // console.log(filters);
+              const filteredData = filterData(parsedData, filters);
+              // console.log(filteredData);
+              return filteredData;
+            }
+          }
+        },
+        "columns": [
+          { "data": "id" },
+          { "data": "type_name" },
+          { "data": "name" },
+          { "data": "status_display" },
+          { "data": "price_display" },
+          { "data": "discount_display" },
+          { "data": "attachment_display" },
+          // Add more 'data' properties for additional columns
+        ],
+        // You can add more configuration options based on DataTables documentation
+      });
+    }
+
+    function filterData(data, filters) {
+      // console.log(data);
+      // console.log(filters);
+      return data.filter(item => {
+        for (let key in filters) {
+          if (item[key] !== filters[key]) {
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+
+    function formatMoney(money){
+      const formattedNumber = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(money);
+      return formattedNumber;
+    }
+
+  </script>
+</body>
+</html>
